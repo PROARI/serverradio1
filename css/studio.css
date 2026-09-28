@@ -1,0 +1,247 @@
+/* Studio DJ Broadcaster Console Styles */
+
+.studio-grid-layout {
+  max-width: 1440px;
+  margin: 1.5rem auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 340px 1fr 360px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Master On-Air Broadcast Header Bar */
+.master-on-air-bar {
+  grid-column: 1 / -1;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-neon);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.on-air-status-group {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.btn-broadcast-master {
+  padding: 0.9rem 2.2rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2a344d, #192033);
+  color: var(--text-muted);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1);
+  transition: all var(--transition-normal);
+}
+
+.btn-broadcast-master.is-live {
+  background: linear-gradient(135deg, var(--accent-red), #b30024);
+  color: #fff;
+  box-shadow: 0 0 35px var(--accent-red-glow), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  animation: pulse-live 2s infinite;
+}
+
+.broadcast-timer {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Studio Columns */
+.studio-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* VU Meter Widget */
+.vu-meter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.vu-bar-channel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vu-bar-channel span {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  width: 14px;
+}
+
+.vu-track {
+  flex: 1;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+}
+
+.vu-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #00ff88 0%, #00ff88 65%, #ffb800 80%, #ff2a55 95%);
+  transition: width 0.05s ease-out;
+  border-radius: 3px;
+}
+
+/* Soundboard Pads Grid */
+.soundboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+}
+
+.sfx-pad-btn {
+  background: rgba(18, 24, 40, 0.9);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: #fff;
+  user-select: none;
+}
+
+.sfx-pad-btn:hover {
+  background: rgba(28, 38, 65, 0.95);
+  border-color: var(--accent-cyan);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px var(--accent-cyan-glow);
+}
+
+.sfx-pad-btn:active {
+  transform: scale(0.94);
+  background: var(--accent-cyan);
+  color: #000;
+}
+
+.sfx-pad-icon {
+  font-size: 1.6rem;
+}
+
+.sfx-pad-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Track list in Studio */
+.playlist-container {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  padding-right: 4px;
+}
+
+.playlist-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
+  transition: background var(--transition-fast);
+}
+
+.playlist-item.active {
+  border-color: var(--accent-cyan);
+  background: rgba(0, 240, 255, 0.1);
+}
+
+.playlist-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Connected IPs Radar Table */
+.ip-radar-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-top: 0.5rem;
+}
+
+.ip-radar-table th {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  color: var(--text-dim);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.ip-radar-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.ip-radar-table tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Upload drop zone */
+.dropzone-box {
+  border: 2px dashed rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.dropzone-box:hover, .dropzone-box.dragover {
+  border-color: var(--accent-cyan);
+  background: rgba(0, 240, 255, 0.05);
+}
+
+@media (max-width: 1200px) {
+  .studio-grid-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .studio-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor de Red e IPs | Radio Digital Pro</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <style>
+    .admin-layout {
+      max-width: 1300px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .qr-card-item {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-neon);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.75rem;
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    .admin-table th {
+      text-align: left;
+      padding: 0.85rem 1rem;
+      background: rgba(0,0,0,0.4);
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .admin-table td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: middle;
+    }
+    .admin-table tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="nav-header">
+    <a href="/" class="logo-group">
+      <div class="logo-icon-wrap" style="background: linear-gradient(135deg, var(--accent-cyan), #00ff88);">📡</div>
+      <div class="logo-text">
+        <h1>MONITOR DE RED & IPs</h1>
+        <span style="color: var(--accent-green);">Detección y Reconocimiento de Dispositivos</span>
+      </div>
+    </a>
+
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <span class="badge badge-lan">
+        🟢 <span id="txt-active-ips-count">0</span> Dispositivos Activos
+      </span>
+      <span class="badge badge-purple">
+        📚 <span id="txt-history-ips-count">0</span> IPs Registradas
+      </span>
+    </div>
+
+    <nav>
+      <ul class="nav-links">
+        <li><a href="/">🎧 Oyente</a></li>
+        <li><a href="/studio.html">🎙️ Estudio DJ</a></li>
+        <li><a href="/admin.html" class="active">📡 Monitor de IPs</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Auto-detected IP Banner HUD -->
+  <section id="ip-hud-banner" class="ip-banner-hud">
+    <!-- Populated by network-hud.js -->
+  </section>
+
+  <!-- Main Content -->
+  <main class="admin-layout">
+
+    <!-- HERO SECTION: INTERNET / GLOBAL ACCESS (OUTSIDE LOCAL NETWORK) -->
+    <section class="glass-panel" style="padding: 2rem; border: 2px solid var(--accent-green); box-shadow: 0 0 35px rgba(0,255,136,0.15);">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <span class="badge badge-live" style="background: rgba(0,255,136,0.15); color: var(--accent-green); border-color: var(--accent-green);">ACCESO MUNDIAL</span>
+          <h2 style="font-size: 1.4rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 0.6rem; margin-top: 0.4rem;">
+            <span>🌍</span> Transmisión por Internet (Fuera de la Red Local)
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+            Permite que cualquier persona en el mundo sintonice tu radio con <b>datos móviles (4G/5G)</b> o desde otras casas y países.
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.6rem;">
+          <button id="btn-admin-toggle-tunnel" class="btn btn-cyan btn-sm">
+            ⚡ Activar Túnel de Internet
+          </button>
+        </div>
+      </div>
+
+      <div id="admin-internet-card-container">
+        <!-- Injected dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- SECTION 1: SERVER NETWORK INTERFACES & QR CODES -->
+    <section class="glass-panel" style="padding: 2rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 style="font-size: 1.4rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 0.6rem;">
+            <span>🏠</span> Direcciones en tu Red Local (Wi-Fi / Ethernet)
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+            Dispositivos conectados al mismo router o red Wi-Fi de tu casa/oficina:
+          </p>
+        </div>
+        <button id="btn-refresh-all" class="btn btn-glass btn-sm">
+          🔄 Actualizar Radar
+        </button>
+      </div>
+
+      <!-- Network Cards Grid -->
+      <div id="interfaces-grid" class="cards-grid">
+        <div style="text-align: center; color: var(--text-dim); padding: 2rem; grid-column: 1 / -1;">
+          Detectando interfaces de red...
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: LIVE CONNECTED CLIENTS & IP RECOGNITION -->
+    <section class="glass-panel" style="padding: 2rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 style="font-size: 1.4rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 0.6rem;">
+            <span>🟢</span> Dispositivos Conectados en Tiempo Real
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+            Reconocimiento automático de cada IP, rol, tipo de red, sistema operativo y navegador:
+          </p>
+        </div>
+        <span class="badge badge-live">ACTUALIZACIÓN EN VIVO</span>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>DIRECCIÓN IP</th>
+              <th>ALIAS / ETIQUETA</th>
+              <th>ROL</th>
+              <th>TIPO DE RED</th>
+              <th>DISPOSITIVO Y NAVEGADOR</th>
+              <th>TIEMPO EN LÍNEA</th>
+              <th>ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody id="active-clients-tbody">
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">
+                Esperando conexiones...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 3: IP HISTORY & ALIAS MANAGEMENT -->
+    <section class="glass-panel" style="padding: 2rem;">
+      <div style="margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.4rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 0.6rem;">
+          <span>📋</span> Historial de Todas las IPs que Han Ingresado
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+          Registro acumulado de todas las IPs que han abierto el sistema de radio:
+        </p>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ESTADO</th>
+              <th>DIRECCIÓN IP</th>
+              <th>ALIAS</th>
+              <th>DISPOSITIVO REGISTRADO</th>
+              <th>VISITAS TOTALES</th>
+              <th>PRIMERA VEZ</th>
+              <th>ÚLTIMA VISITA</th>
+              <th>ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody id="history-clients-tbody">
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 2rem;">
+                Cargando historial...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 4: FIREWALL & NETWORK HELP -->
+    <section class="glass-panel" style="padding: 2rem; border-color: rgba(255, 184, 0, 0.3);">
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--accent-amber); display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem;">
+        <span>💡</span> ¿No se puede conectar otro celular o PC desde el mismo Wi-Fi?
+      </h3>
+      <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem;">
+        Si un teléfono u otra computadora en la misma red Wi-Fi no carga la página, es muy común que el <b>Firewall de Windows</b> esté bloqueando el puerto <b>3000</b>. Para habilitarlo en 1 segundo:
+      </p>
+      <div style="background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.85rem 1rem; font-family: var(--font-mono); font-size: 0.82rem; color: var(--accent-cyan); display: flex; align-items: center; justify-content: space-between;">
+        <span>netsh advfirewall firewall add rule name="RadioLocal" dir=in action=allow protocol=TCP localport=3000</span>
+        <button class="btn btn-glass btn-sm" onclick="navigator.clipboard.writeText('netsh advfirewall firewall add rule name=\x22RadioLocal\x22 dir=in action=allow protocol=TCP localport=3000'); window.networkHud.showToast('Comando copiado', 'success');">
+          Copiar Comando
+        </button>
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.6rem;">
+        Ejecuta ese comando en PowerShell o Símbolo del Sistema como Administrador si deseas habilitar el puerto sin restricciones en tu red local.
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Edit Alias Modal -->
+  <div id="modal-alias" class="modal-overlay">
+    <div class="modal-box" style="max-width: 420px;">
+      <div class="modal-header">
+        <div class="modal-title">🏷️ Asignar Alias a IP</div>
+        <button class="modal-close" onclick="document.getElementById('modal-alias').classList.remove('active')">&times;</button>
+      </div>
+      <form id="form-set-alias">
+        <input type="hidden" id="alias-target-ip">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Personaliza el nombre para reconocer la IP <b id="alias-ip-display" class="text-cyan"></b>:
+        </p>
+        <input type="text" id="alias-input-value" class="input-field" placeholder="Ej: Celular de Juan, PC Recepción..." maxlength="40" required>
+        <div style="display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1.25rem;">
+          <button type="button" class="btn btn-glass btn-sm" onclick="document.getElementById('modal-alias').classList.remove('active')">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-cyan btn-sm">
+            Guardar Alias
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/network-hud.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      window.networkHud.init('admin', 'Administrador');
+
+      const interfacesGrid = document.getElementById('interfaces-grid');
+      const activeClientsTbody = document.getElementById('active-clients-tbody');
+      const historyClientsTbody = document.getElementById('history-clients-tbody');
+      const txtActiveIpsCount = document.getElementById('txt-active-ips-count');
+      const txtHistoryIpsCount = document.getElementById('txt-history-ips-count');
+      const btnRefreshAll = document.getElementById('btn-refresh-all');
+      const adminInternetContainer = document.getElementById('admin-internet-card-container');
+      const btnAdminToggleTunnel = document.getElementById('btn-admin-toggle-tunnel');
+
+      const modalAlias = document.getElementById('modal-alias');
+      const formSetAlias = document.getElementById('form-set-alias');
+      const aliasTargetIp = document.getElementById('alias-target-ip');
+      const aliasIpDisplay = document.getElementById('alias-ip-display');
+      const aliasInputValue = document.getElementById('alias-input-value');
+
+      function renderInternetSection(internet) {
+        if (!adminInternetContainer) return;
+        const isLive = internet && internet.isTunnelActive && internet.tunnelUrl;
+
+        if (btnAdminToggleTunnel) {
+          btnAdminToggleTunnel.textContent = isLive ? '🛑 Detener Túnel' : '⚡ Activar Túnel de Internet';
+          btnAdminToggleTunnel.className = isLive ? 'btn btn-glass btn-sm' : 'btn btn-cyan btn-sm';
+        }
+
+        if (isLive) {
+          adminInternetContainer.innerHTML = `
+            <div style="display: grid; grid-template-columns: 240px 1fr; gap: 2rem; align-items: center; background: rgba(0,0,0,0.35); border: 1px solid var(--accent-green); border-radius: var(--radius-md); padding: 1.5rem;">
+              <div style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.5rem;">
+                <div style="background: #0d1117; padding: 10px; border-radius: 12px; border: 1px solid var(--accent-green);">
+                  <img src="${internet.tunnelQr}" alt="QR Internet" style="width: 190px; height: 190px; display: block; border-radius: 6px;">
+                </div>
+                <span class="mono" style="font-size: 0.75rem; color: var(--accent-green);">Escanea desde cualquier país</span>
+              </div>
+              <div>
+                <div style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">ENLACE PÚBLICO HTTPS MUNDIAL:</div>
+                <div style="font-size: 1.4rem; font-weight: 800; color: #fff; margin: 0.35rem 0 1rem; word-break: break-all; font-family: var(--font-mono);">
+                  ${internet.tunnelUrl}
+                </div>
+                <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.25rem;">
+                  ✅ Tu radio está <b>conectada a Internet</b>. Los oyentes pueden sintonizarte desde cualquier red móvil (3G/4G/5G) o red Wi-Fi externa usando este enlace directo.
+                </p>
+                <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                  <button class="btn btn-cyan btn-sm" onclick="navigator.clipboard.writeText('${internet.tunnelUrl}'); window.networkHud.showToast('Enlace de oyente copiado', 'success');">
+                    📋 Copiar Enlace Oyente
+                  </button>
+                  <button class="btn btn-purple btn-sm" onclick="navigator.clipboard.writeText('${internet.tunnelStudioUrl}'); window.networkHud.showToast('Enlace de estudio copiado', 'success');">
+                    🎙️ Copiar Enlace Estudio
+                  </button>
+                  <a href="${internet.tunnelUrl}" target="_blank" class="btn btn-glass btn-sm">
+                    🔗 Probar en Nueva Pestaña
+                  </a>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          adminInternetContainer.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center; background: rgba(0,0,0,0.25); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md); padding: 1.5rem;">
+              <div>
+                <div style="font-weight: 700; color: #fff; font-size: 1.05rem; margin-bottom: 0.35rem;">
+                  El túnel de internet está actualmente inactivo
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                  Tu IP Pública detectada es <b class="text-cyan mono">${internet && internet.publicIp ? internet.publicIp : 'Consultando...'}</b>.
+                  Haz clic en el botón para generar al instante una dirección HTTPS pública que funcione en todo el mundo sin necesidad de configurar tu router.
+                </div>
+              </div>
+              <button class="btn btn-purple" onclick="document.getElementById('btn-admin-toggle-tunnel').click()">
+                🚀 Activar Ahora
+              </button>
+            </div>
+          `;
+        }
+      }
+
+      btnAdminToggleTunnel?.addEventListener('click', async () => {
+        const isLive = btnAdminToggleTunnel.textContent.includes('Detener');
+        if (isLive) {
+          btnAdminToggleTunnel.textContent = '⏳ Deteniendo...';
+          try {
+            await fetch('/api/tunnel/stop', { method: 'POST' });
+            window.networkHud.showToast('Túnel detenido', 'info');
+            await loadNetworkInterfaces();
+          } catch (e) {}
+        } else {
+          btnAdminToggleTunnel.textContent = '⏳ Iniciando...';
+          try {
+            const res = await fetch('/api/tunnel/start', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+              window.networkHud.showToast('🌍 ¡Túnel de internet activado!', 'success');
+              await loadNetworkInterfaces();
+            } else {
+              window.networkHud.showToast('Error: ' + data.error, 'danger');
+            }
+          } catch (e) {
+            window.networkHud.showToast('Error conectando túnel: ' + e.message, 'danger');
+          }
+        }
+      });
+
+      async function loadNetworkInterfaces() {
+        try {
+          const res = await fetch('/api/network-info');
+          if (res.ok) {
+            const data = await res.json();
+            renderInterfaces(data);
+            renderInternetSection(data.internet);
+          }
+        } catch (e) {
+          interfacesGrid.innerHTML = `<div style="color: var(--accent-red); padding: 1rem;">Error detectando interfaces</div>`;
+        }
+      }
+
+      function renderInterfaces(data) {
+        if (!data.interfaces || data.interfaces.length === 0) {
+          interfacesGrid.innerHTML = `<div>No se detectaron interfaces</div>`;
+          return;
+        }
+
+        interfacesGrid.innerHTML = data.interfaces.map(net => `
+          <div class="qr-card-item">
+            <span class="badge ${net.isLoopback ? 'badge-local' : 'badge-lan'}">
+              ${net.interfaceName} (${net.category})
+            </span>
+
+            <div style="background: #0d1117; padding: 10px; border-radius: 12px; border: 1px solid var(--border-neon);">
+              <img src="${net.qrDataUrl}" alt="QR Code" style="width: 180px; height: 180px; display: block; border-radius: 6px;">
+            </div>
+
+            <div style="font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700; color: var(--accent-cyan);">
+              ${net.url}
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; width: 100%;">
+              <a href="${net.url}" target="_blank" class="btn btn-glass btn-sm" style="flex: 1;">
+                🎧 Abrir Oyente
+              </a>
+              <a href="${net.studioUrl}" target="_blank" class="btn btn-cyan btn-sm" style="flex: 1;">
+                🎙️ Abrir Estudio
+              </a>
+            </div>
+            <button class="btn btn-glass btn-sm" style="width: 100%;" onclick="navigator.clipboard.writeText('${net.url}'); window.networkHud.showToast('Enlace copiado al portapapeles', 'success');">
+              📋 Copiar Enlace
+            </button>
+          </div>
+        `).join('');
+      }
+
+      async function loadIpsData() {
+        try {
+          const res = await fetch('/api/ips');
+          if (res.ok) {
+            const data = await res.json();
+            txtActiveIpsCount.textContent = data.activeCount || 0;
+            txtHistoryIpsCount.textContent = data.historyCount || 0;
+
+            renderActiveClients(data.activeClients || []);
+            renderHistoryClients(data.history || []);
+          }
+        } catch (e) {
+          console.warn('Error cargando IPs:', e);
+        }
+      }
+
+      function renderActiveClients(clients) {
+        if (clients.length === 0) {
+          activeClientsTbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-dim); padding: 2rem;">
+                No hay dispositivos conectados en este momento
+              </td>
+            </tr>`;
+          return;
+        }
+
+        activeClientsTbody.innerHTML = clients.map(c => `
+          <tr>
+            <td>
+              <div style="font-family: var(--font-mono); font-weight: 700; color: #fff; font-size: 0.95rem;">
+                ${c.ip}
+              </div>
+            </td>
+            <td>
+              ${c.alias ? `<span class="badge badge-purple" style="font-size: 0.75rem;">🏷️ ${escapeHtml(c.alias)}</span>` : '<span style="color: var(--text-dim); font-size: 0.75rem;">Sin alias</span>'}
+            </td>
+            <td>
+              <span class="badge ${c.role === 'broadcaster' ? 'badge-live' : 'badge-lan'}">
+                ${c.role === 'broadcaster' ? '🎙️ Locutor' : '🎧 Oyente'}
+              </span>
+            </td>
+            <td>
+              <span class="badge ${c.category.includes('LAN') ? 'badge-lan' : c.category.includes('Este') ? 'badge-local' : 'badge-wan'}">
+                ${c.category}
+              </span>
+            </td>
+            <td>
+              <div style="font-weight: 600; color: #fff;">${c.device}</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim);">${c.os} • ${c.browser}</div>
+            </td>
+            <td>
+              <span class="mono" style="color: var(--accent-green); font-size: 0.85rem;">
+                ${formatDuration(c.connectedDurationSec)}
+              </span>
+            </td>
+            <td>
+              <button class="btn btn-glass btn-sm" onclick="openAliasModal('${c.ip}', '${escapeHtml(c.alias || '')}')">
+                🏷️ Renombrar
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      function renderHistoryClients(history) {
+        if (history.length === 0) {
+          historyClientsTbody.innerHTML = `
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-dim); padding: 2rem;">
+                No hay historial de visitas
+              </td>
+            </tr>`;
+          return;
+        }
+
+        historyClientsTbody.innerHTML = history.map(h => `
+          <tr>
+            <td>
+              <span class="badge ${h.isOnline ? 'badge-live' : 'badge-off'}">
+                ${h.isOnline ? 'EN LÍNEA' : 'OFFLINE'}
+              </span>
+            </td>
+            <td>
+              <div class="mono" style="font-weight: 700; color: var(--accent-cyan);">${h.ip}</div>
+            </td>
+            <td>
+              ${h.alias ? `<b style="color: var(--accent-purple); font-size: 0.85rem;">${escapeHtml(h.alias)}</b>` : '<span style="color: var(--text-dim);">—</span>'}
+            </td>
+            <td>
+              <div style="font-size: 0.82rem; color: #fff;">${h.device} (${h.os})</div>
+              <div style="font-size: 0.72rem; color: var(--text-dim);">${h.browser}</div>
+            </td>
+            <td>
+              <b class="mono text-cyan">${h.totalVisits}</b>
+            </td>
+            <td>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">${new Date(h.firstSeen).toLocaleDateString()} ${new Date(h.firstSeen).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </td>
+            <td>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">${new Date(h.lastSeen).toLocaleDateString()} ${new Date(h.lastSeen).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </td>
+            <td>
+              <button class="btn btn-glass btn-sm" onclick="openAliasModal('${h.ip}', '${escapeHtml(h.alias || '')}')">
+                🏷️ Alias
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      window.openAliasModal = (ip, currentAlias) => {
+        aliasTargetIp.value = ip;
+        aliasIpDisplay.textContent = ip;
+        aliasInputValue.value = currentAlias || '';
+        modalAlias.classList.add('active');
+        setTimeout(() => aliasInputValue.focus(), 100);
+      };
+
+      formSetAlias.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const ip = aliasTargetIp.value;
+        const alias = aliasInputValue.value.trim();
+
+        try {
+          const res = await fetch('/api/ips/alias', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ip, alias })
+          });
+          if (res.ok) {
+            modalAlias.classList.remove('active');
+            window.networkHud.showToast(`Alias para ${ip} guardado`, 'success');
+            loadIpsData();
+          }
+        } catch (e) {
+          window.networkHud.showToast('Error guardando alias', 'danger');
+        }
+      });
+
+      function formatDuration(sec) {
+        if (!sec || sec < 60) return `${sec || 0}s`;
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${m}m ${s}s`;
+      }
+
+      function escapeHtml(str) {
+        return (str || '').replace(/[&<>"']/g, (m) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        }[m]));
+      }
+
+      btnRefreshAll.addEventListener('click', () => {
+        loadNetworkInterfaces();
+        loadIpsData();
+        window.networkHud.showToast('Radar actualizado', 'info');
+      });
+
+      loadNetworkInterfaces();
+      loadIpsData();
+      setInterval(loadIpsData, 4000);
+    });
+  </script>
+</body>
+</html>

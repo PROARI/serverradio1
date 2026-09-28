@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radio Digital Pro | Transmisión en Vivo</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/player.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="nav-header">
+    <a href="/" class="logo-group">
+      <div class="logo-icon-wrap">📻</div>
+      <div class="logo-text">
+        <h1>RADIO DIGITAL PRO</h1>
+        <span>Servidor de Emisión Local</span>
+      </div>
+    </a>
+
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <span id="badge-live-status" class="badge badge-off">
+        <span class="pulse-dot"></span>
+        <span id="txt-live-status">VERIFICANDO...</span>
+      </span>
+      <span class="badge badge-lan">
+        👥 <span id="txt-listeners-count">0</span> Oyentes
+      </span>
+    </div>
+
+    <nav>
+      <ul class="nav-links">
+        <li><a href="/" class="active">🎧 Oyente</a></li>
+        <li><a href="/studio.html">🎙️ Estudio DJ</a></li>
+        <li><a href="/admin.html">📡 Monitor de IPs</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Auto-detected IP Banner HUD -->
+  <section id="ip-hud-banner" class="ip-banner-hud">
+    <!-- Populated by network-hud.js -->
+  </section>
+
+  <!-- Main Layout -->
+  <main class="player-main-layout">
+
+    <!-- Primary Player Card -->
+    <div class="glass-panel player-card" id="player-container">
+      
+      <!-- Visualizer & Vinyl Disc -->
+      <div class="visualizer-wrapper">
+        <div class="disc-glow-ring"></div>
+        <canvas id="visualizer-canvas" class="visualizer-canvas" width="300" height="300"></canvas>
+        <div class="disc-center">
+          <div class="disc-icon" id="disc-icon">📻</div>
+        </div>
+      </div>
+
+      <!-- Metadata Info -->
+      <div class="stream-meta-container">
+        <h2 id="meta-station-name" class="stream-station-title">Radio Digital Pro</h2>
+        <div class="stream-show-name">
+          <span>🎙️</span> <span id="meta-show-name">Programa Estelar</span>
+          <span style="color: var(--text-dim);">|</span>
+          <span style="font-size: 0.85rem; color: var(--text-muted);" id="meta-dj-name">DJ Principal</span>
+        </div>
+        <div class="stream-track-info">
+          <span>🎵</span> <span id="meta-track-title">Esperando transmisión...</span>
+        </div>
+      </div>
+
+      <!-- Master Play/Pause Button -->
+      <button id="btn-master-play" class="master-play-btn" title="Iniciar Reproducción">
+        ▶
+      </button>
+      <div id="player-status-hint" style="font-size: 0.85rem; color: var(--text-muted); margin-top: -0.75rem; margin-bottom: 1.5rem; font-family: var(--font-mono);">
+        Toca para sintonizar en vivo
+      </div>
+
+      <!-- Volume & Controls -->
+      <div class="volume-control-wrap">
+        <button id="btn-mute" class="vol-icon" title="Silenciar">🔊</button>
+        <input type="range" id="vol-slider" class="vol-slider" min="0" max="1" step="0.01" value="0.85">
+        <span id="vol-percent" class="mono" style="font-size: 0.8rem; color: var(--text-dim); min-width: 38px;">85%</span>
+      </div>
+
+      <!-- Streaming Engine Switcher -->
+      <div style="margin-top: 2rem; display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; color: var(--text-muted);">
+        <span>Modo de audio:</span>
+        <select id="select-stream-mode" style="background: rgba(0,0,0,0.4); color: var(--accent-cyan); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.3rem 0.6rem; font-family: var(--font-mono); font-size: 0.78rem;">
+          <option value="ws">Baja Latencia (WebSocket Directo)</option>
+          <option value="http">Estándar HTTP (/stream)</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Sidebar Cards -->
+    <div class="player-sidebar">
+
+      <!-- Connection & IP Telemetry Card -->
+      <div class="glass-panel info-card">
+        <div class="info-card-header">
+          <h3 class="info-card-title">
+            <span>📡</span> Diagnóstico de tu Conexión
+          </h3>
+          <span class="badge badge-lan" id="badge-client-role">OYENTE</span>
+        </div>
+
+        <div class="hud-stat-grid">
+          <div class="hud-stat-box">
+            <div class="hud-stat-label">Tu Dirección IP</div>
+            <div id="stat-client-ip" class="hud-stat-val">...</div>
+          </div>
+          <div class="hud-stat-box">
+            <div class="hud-stat-label">Tipo de Red</div>
+            <div id="stat-client-network" class="hud-stat-val" style="color: var(--accent-purple);">...</div>
+          </div>
+          <div class="hud-stat-box">
+            <div class="hud-stat-label">Tu Dispositivo</div>
+            <div id="stat-client-device" class="hud-stat-val" style="font-size: 0.88rem; color: #fff;">...</div>
+          </div>
+          <div class="hud-stat-box">
+            <div class="hud-stat-label">Latencia / Ping</div>
+            <div id="stat-client-ping" class="hud-stat-val" style="color: var(--accent-green);">&lt; 15 ms</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.8rem; color: var(--text-dim);">¿Quieres escuchar desde tu móvil?</span>
+          <button class="btn btn-cyan btn-sm" onclick="window.networkHud.showQrModal()">
+            📱 Ver QR
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Shoutouts / Saludos Card -->
+      <div class="glass-panel info-card">
+        <div class="info-card-header">
+          <h3 class="info-card-title">
+            <span>💬</span> Saludos al Estudio en Vivo
+          </h3>
+          <span class="badge badge-purple" style="font-size: 0.7rem;">CHATEAR</span>
+        </div>
+
+        <!-- Messages Feed -->
+        <div id="shoutouts-feed" class="shoutouts-feed">
+          <div style="color: var(--text-dim); font-size: 0.82rem; text-align: center; padding: 1rem;">
+            No hay mensajes aún. ¡Sé el primero en enviar un saludo!
+          </div>
+        </div>
+
+        <!-- Message Form -->
+        <form id="shoutout-form" class="shoutout-form">
+          <input type="text" id="shoutout-name" class="input-field" placeholder="Tu nombre o apodo..." maxlength="30" required>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="shoutout-message" class="input-field" placeholder="Escribe tu saludo o pide una canción..." maxlength="180" required>
+            <button type="submit" class="btn btn-purple btn-sm" style="white-space: nowrap;">
+              Enviar
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Audio Elements -->
+  <audio id="native-audio-player" style="display: none;" preload="none"></audio>
+
+  <!-- Scripts -->
+  <script src="/js/audio-synth.js"></script>
+  <script src="/js/network-hud.js"></script>
+  <script src="/js/player.js"></script>
+</body>
+</html>

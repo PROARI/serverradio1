@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estudio de Emisión DJ | Radio Digital Pro</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/studio.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="nav-header">
+    <a href="/" class="logo-group">
+      <div class="logo-icon-wrap" style="background: linear-gradient(135deg, var(--accent-purple), var(--accent-red));">🎙️</div>
+      <div class="logo-text">
+        <h1>ESTUDIO DE EMISIÓN</h1>
+        <span style="color: var(--accent-purple);">Consola de Transmisión DJ</span>
+      </div>
+    </a>
+
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <span id="badge-master-status" class="badge badge-off">
+        <span class="pulse-dot"></span>
+        <span id="txt-master-status">FUERA DEL AIRE</span>
+      </span>
+      <span class="badge badge-lan">
+        👥 <span id="txt-listeners-count">0</span> Oyentes Conectados
+      </span>
+    </div>
+
+    <nav>
+      <ul class="nav-links">
+        <li><a href="/">🎧 Oyente</a></li>
+        <li><a href="/studio.html" class="active">🎙️ Estudio DJ</a></li>
+        <li><a href="/admin.html">📡 Monitor de IPs</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Auto-detected IP Banner HUD -->
+  <section id="ip-hud-banner" class="ip-banner-hud">
+    <!-- Populated by network-hud.js -->
+  </section>
+
+  <!-- Main Studio Console Layout -->
+  <main class="studio-grid-layout">
+
+    <!-- MASTER ON-AIR BROADCAST CONTROL BAR -->
+    <section class="master-on-air-bar">
+      <div class="on-air-status-group">
+        <button id="btn-toggle-on-air" class="btn-broadcast-master">
+          <span style="font-size: 1.5rem;">🔴</span>
+          <span id="lbl-on-air">INICIAR TRANSMISIÓN</span>
+        </button>
+
+        <div>
+          <div style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; font-family: var(--font-mono);">
+            Tiempo de Emisión
+          </div>
+          <div id="broadcast-timer" class="broadcast-timer">00:00:00</div>
+        </div>
+      </div>
+
+      <!-- Master Audio VU Meter -->
+      <div style="flex: 1; max-width: 420px;" class="vu-meter-panel">
+        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">
+          <span>NIVEL MASTER SALIDA (L / R)</span>
+          <span id="lbl-master-db">-inf dB</span>
+        </div>
+        <div class="vu-bar-channel">
+          <span>L</span>
+          <div class="vu-track"><div id="vu-master-l" class="vu-fill"></div></div>
+        </div>
+        <div class="vu-bar-channel">
+          <span>R</span>
+          <div class="vu-track"><div id="vu-master-r" class="vu-fill"></div></div>
+        </div>
+      </div>
+
+      <!-- Quick Actions & Internet Tunnel -->
+      <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+        <div id="studio-internet-pill" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); padding: 0.35rem 0.75rem; border-radius: var(--radius-full); font-size: 0.78rem; font-family: var(--font-mono);">
+          <span>🌍 Internet:</span>
+          <b id="studio-internet-text" style="color: var(--text-dim);">DESCONECTADO</b>
+        </div>
+        <button id="btn-studio-toggle-tunnel" class="btn btn-purple btn-sm">
+          ⚡ Activar Internet
+        </button>
+        <button class="btn btn-glass btn-sm" onclick="window.networkHud.showQrModal()">
+          📱 Enlace Móvil / QR
+        </button>
+        <a href="/" target="_blank" class="btn btn-cyan btn-sm">
+          🎧 Abrir Oyente
+        </a>
+      </div>
+    </section>
+
+    <!-- COLUMN 1: MICROPHONE & TALKOVER MIXER -->
+    <div class="studio-col">
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+          <h3 style="font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+            <span>🎙️</span> Micrófono Principal
+          </h3>
+          <span id="badge-mic-state" class="badge badge-off">SILENCIADO</span>
+        </div>
+
+        <!-- Mic Device Selector -->
+        <div style="margin-bottom: 1rem;">
+          <label style="font-size: 0.75rem; color: var(--text-dim); display: block; margin-bottom: 0.35rem;">
+            DISPOSITIVO DE ENTRADA:
+          </label>
+          <select id="select-mic-device" class="input-field" style="font-size: 0.8rem;">
+            <option value="">Cargando micrófonos...</option>
+          </select>
+        </div>
+
+        <!-- Mic Toggle & Push to Talk -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 1.25rem;">
+          <button id="btn-toggle-mic" class="btn btn-glass btn-sm" style="font-weight: 700;">
+            🎤 Abrir Mic
+          </button>
+          <button id="btn-push-to-talk" class="btn btn-glass btn-sm" style="user-select: none;">
+            🗣️ Push to Talk
+          </button>
+        </div>
+
+        <!-- Mic Gain Fader -->
+        <div style="margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.4rem;">
+            <span style="color: var(--text-dim);">Ganancia Micrófono:</span>
+            <span id="lbl-mic-gain" class="mono text-cyan">100%</span>
+          </div>
+          <input type="range" id="slider-mic-gain" class="vol-slider" style="width: 100%;" min="0" max="2" step="0.05" value="1">
+        </div>
+
+        <!-- Auto-Ducking / Talkover Mode -->
+        <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: #fff;">Ducking / Talkover</span>
+            <input type="checkbox" id="chk-auto-ducking" checked style="width: 18px; height: 18px; accent-color: var(--accent-cyan); cursor: pointer;">
+          </div>
+          <p style="font-size: 0.72rem; color: var(--text-dim); line-height: 1.3;">
+            Baja automáticamente la música al 25% cuando hablas por el micrófono y la restaura suavemente al terminar.
+          </p>
+        </div>
+
+        <!-- Mic VU Meter -->
+        <div class="vu-meter-panel">
+          <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim); font-family: var(--font-mono);">
+            <span>NIVEL MIC</span>
+            <span id="lbl-mic-db">-inf dB</span>
+          </div>
+          <div class="vu-track"><div id="vu-mic-level" class="vu-fill"></div></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- COLUMN 2: MUSIC DECK & SOUNDBOARD -->
+    <div class="studio-col">
+
+      <!-- MUSIC PLAYER DECK -->
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+          <h3 style="font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+            <span>💿</span> Reproductor de Música
+          </h3>
+          <button id="btn-demo-beat" class="btn btn-purple btn-sm">
+            ⚡ Beat Demo Sintetizado
+          </button>
+        </div>
+
+        <!-- Now Playing Bar -->
+        <div style="background: rgba(0,0,0,0.35); border: 1px solid var(--border-neon); border-radius: var(--radius-md); padding: 0.85rem 1.1rem; margin-bottom: 1rem;">
+          <div style="font-size: 0.72rem; color: var(--text-dim); font-family: var(--font-mono);">PISTA ACTUAL EN DECK:</div>
+          <div id="deck-now-playing" style="font-size: 0.95rem; font-weight: 700; color: var(--accent-cyan); margin-top: 0.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            Ninguna pista seleccionada
+          </div>
+        </div>
+
+        <!-- Deck Controls & Volume -->
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+          <button id="btn-deck-play" class="btn btn-cyan btn-sm" style="min-width: 90px;">
+            ▶ Play
+          </button>
+          <button id="btn-deck-stop" class="btn btn-glass btn-sm">
+            ⏹ Detener
+          </button>
+
+          <div style="flex: 1; display: flex; align-items: center; gap: 0.6rem;">
+            <span style="font-size: 0.8rem; color: var(--text-dim);">Vol:</span>
+            <input type="range" id="slider-music-vol" class="vol-slider" min="0" max="1" step="0.02" value="0.8">
+            <span id="lbl-music-vol" class="mono" style="font-size: 0.75rem; color: var(--text-dim); min-width: 32px;">80%</span>
+          </div>
+        </div>
+
+        <!-- Drag & Drop Upload Zone -->
+        <div id="drop-zone" class="dropzone-box">
+          <input type="file" id="file-music-upload" accept="audio/*" multiple style="display: none;">
+          <div style="font-size: 1.8rem; margin-bottom: 0.3rem;">🎵</div>
+          <div style="font-size: 0.85rem; font-weight: 600; color: #fff;">
+            Arrastra canciones MP3 / WAV aquí
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 0.25rem;">
+            o <span class="text-cyan" style="text-decoration: underline;">haz clic para explorar archivos</span>
+          </div>
+        </div>
+
+        <!-- Playlist -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem;">
+          <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-dim); font-family: var(--font-mono);">
+            LISTA DE REPRODUCCIÓN (<span id="playlist-count">0</span>)
+          </span>
+          <button id="btn-refresh-library" class="btn btn-glass btn-sm" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
+            🔄 Refrescar
+          </button>
+        </div>
+        <div id="playlist-container" class="playlist-container">
+          <div style="color: var(--text-dim); font-size: 0.8rem; text-align: center; padding: 1.5rem;">
+            Carga canciones o usa el Beat Demo para comenzar
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SOUNDBOARD (CAJA DE EFECTOS) -->
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+          <h3 style="font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+            <span>🔊</span> Caja de Efectos (Soundboard)
+          </h3>
+          <span class="mono text-cyan" style="font-size: 0.75rem;">WEB AUDIO FX</span>
+        </div>
+
+        <div class="soundboard-grid">
+          <button class="sfx-pad-btn" data-sfx="airhorn">
+            <span class="sfx-pad-icon">📯</span>
+            <span class="sfx-pad-name">Airhorn DJ</span>
+          </button>
+          <button class="sfx-pad-btn" data-sfx="applause">
+            <span class="sfx-pad-icon">👏</span>
+            <span class="sfx-pad-name">Aplausos</span>
+          </button>
+          <button class="sfx-pad-btn" data-sfx="scratch">
+            <span class="sfx-pad-icon">💿</span>
+            <span class="sfx-pad-name">Scratch</span>
+          </button>
+          <button class="sfx-pad-btn" data-sfx="jingle">
+            <span class="sfx-pad-icon">📻</span>
+            <span class="sfx-pad-name">Jingle Radio</span>
+          </button>
+          <button class="sfx-pad-btn" data-sfx="laser">
+            <span class="sfx-pad-icon">⚡</span>
+            <span class="sfx-pad-name">Sweep Láser</span>
+          </button>
+          <button class="sfx-pad-btn" data-sfx="censor">
+            <span class="sfx-pad-icon">🚨</span>
+            <span class="sfx-pad-name">Beep Censura</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COLUMN 3: LIVE IP RADAR & METADATA -->
+    <div class="studio-col">
+
+      <!-- LIVE CONNECTED IPS RADAR -->
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+          <h3 style="font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+            <span>📡</span> Radar de IPs en Vivo
+          </h3>
+          <span class="badge badge-lan" id="badge-total-ips">0 IPs</span>
+        </div>
+
+        <div style="max-height: 230px; overflow-y: auto;">
+          <table class="ip-radar-table">
+            <thead>
+              <tr>
+                <th>DIRECCIÓN IP</th>
+                <th>TIPO</th>
+                <th>EQUIPO</th>
+              </tr>
+            </thead>
+            <tbody id="ip-radar-tbody">
+              <tr>
+                <td colspan="3" style="text-align: center; color: var(--text-dim); padding: 1.5rem;">
+                  Esperando oyentes...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- METADATA EDITOR -->
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <h3 style="font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+          <span>📝</span> Información al Aire
+        </h3>
+
+        <form id="form-metadata" style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <div>
+            <label style="font-size: 0.72rem; color: var(--text-dim); display: block; margin-bottom: 0.25rem;">NOMBRE DE LA RADIO:</label>
+            <input type="text" id="meta-input-station" class="input-field" value="Radio Digital Pro">
+          </div>
+          <div>
+            <label style="font-size: 0.72rem; color: var(--text-dim); display: block; margin-bottom: 0.25rem;">PROGRAMA ACTUAL:</label>
+            <input type="text" id="meta-input-show" class="input-field" value="Transmisión Estelar">
+          </div>
+          <div>
+            <label style="font-size: 0.72rem; color: var(--text-dim); display: block; margin-bottom: 0.25rem;">NOMBRE DEL DJ / LOCUTOR:</label>
+            <input type="text" id="meta-input-dj" class="input-field" value="DJ Principal">
+          </div>
+          <div>
+            <label style="font-size: 0.72rem; color: var(--text-dim); display: block; margin-bottom: 0.25rem;">TÍTULO CANCIÓN / TEMA:</label>
+            <input type="text" id="meta-input-track" class="input-field" value="Música en Continuo">
+          </div>
+
+          <button type="submit" class="btn btn-cyan btn-sm" style="margin-top: 0.5rem;">
+            🔄 Actualizar Datos al Aire
+          </button>
+        </form>
+      </div>
+
+      <!-- LIVE SALUDOS FEED -->
+      <div class="glass-panel" style="padding: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+          <h3 style="font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+            <span>💬</span> Saludos de Oyentes
+          </h3>
+          <span class="badge badge-purple" style="font-size: 0.7rem;">EN VIVO</span>
+        </div>
+
+        <div id="studio-shoutouts-feed" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+          <div style="text-align: center; color: var(--text-dim); font-size: 0.8rem; padding: 1rem;">
+            No hay saludos recientes
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Audio Deck Element -->
+  <audio id="deck-audio-element" style="display: none;"></audio>
+
+  <!-- Scripts -->
+  <script src="/js/audio-synth.js"></script>
+  <script src="/js/network-hud.js"></script>
+  <script src="/js/studio.js"></script>
+</body>
+</html>
